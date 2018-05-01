@@ -11,7 +11,11 @@ class Register extends Component {
     password2: "",
     errors: {}
   };
-
+  componentDidMount = () => {
+    if (this.props.auth.isAuthenticated) {
+      this.props.history.push("/dashboard");
+    }
+  };
   componentWillReceiveProps(nextProps) {
     // Получение объекта ошибок из редакс стора. Ошибки приходят в ответ на неудачную валидацию от бекенд апи
     if (nextProps.errors) {
