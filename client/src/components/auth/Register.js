@@ -1,5 +1,8 @@
 import React, { Component } from "react";
-import axios from "axios";
+import { connect } from "react-redux";
+import { withRouter } from "react-router-dom"; // Для того чтобы делать редирект между компонентами внутри экшена
+import { registerUser } from "../../actions/authActions";
+import PropTypes from "prop-types";
 class Register extends Component {
   state = {
     name: "",
@@ -8,6 +11,13 @@ class Register extends Component {
     password2: "",
     errors: {}
   };
+
+  componentWillReceiveProps(nextProps) {
+    // Получение объекта ошибок из редакс стора. Ошибки приходят в ответ на неудачную валидацию от бекенд апи
+    if (nextProps.errors) {
+      this.setState({ errors: nextProps.errors });
+    }
+  }
 
   onChange = e => {
     this.setState({ [e.target.name]: e.target.value });
@@ -20,13 +30,12 @@ class Register extends Component {
       password: this.state.password,
       password2: this.state.password2
     };
-    axios
-      .post("/api/users/register", newUser)
-      .then(res => console.log(res.data))
-      .catch(err => this.setState({ errors: err.response.data }));
+
+    this.props.registerUser(newUser, this.props.history); //Второй параметр для того чтобы делать редирект между компонентами внутри экшена
   };
   render() {
     const { errors } = this.state;
+
     const nameError = errors.name ? "is-invalid" : "";
     const emailError = errors.email ? "is-invalid" : "";
     const passwordError = errors.password ? "is-invalid" : "";
@@ -106,4 +115,17 @@ class Register extends Component {
     );
   }
 }
-export default Register;
+
+Register.propTypes = {
+  registerUser: PropTypes.func.isRequired,
+  auth: PropTypes.object.isRequired,
+  errors: PropTypes.object.isRequired
+};
+
+const mapStateToProps = state => ({
+  // Для доступа к содержимому стора в компоненте через пропсы
+  auth: state.auth,
+  errors: state.errors
+});
+
+export default connect(mapStateToProps, { registerUser })(withRouter(Register)); // connect - связь компонента с редакс, withRouter - для редиректа между компонентами
